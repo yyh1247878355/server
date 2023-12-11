@@ -1,7 +1,22 @@
 -module(test).
 -include("person_pb.hrl").
--export([test/0]).
+-export([start/0]).
 
 
-test() ->
-	person_pb:encode_msg(#'Person'{name="yyh",id=123,email="yyh@qq.com"}).
+start() ->
+	Pid = spwan(?MODULE, loop, []),
+	erlang:start_timer(2000, Pid, "test timer").
+
+rpc(Pid, Request) ->
+	Pid ! {self(), Request},
+	receive
+		{Pid, Response} ->
+			Response
+	end.
+
+loop(X) ->
+	receive
+		Any ->
+			io:format("Receive:~p~n", [Any]),
+			loop(X)
+	end.
